@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 
 import 'api.dart';
+import 'app_config.dart';
 import 'session.dart';
 import 'widgets.dart';
 import 'login_screen.dart';
@@ -55,6 +56,13 @@ class _GateState extends State<_Gate> {
       ok = true;
       // 后台静默续期 Cookie
       Api.autoLogin();
+    } else if (AppConfig.hasBuiltinAccount) {
+      // 内置账号静默登录
+      ok = await Api.login(
+        serverUrl: AppConfig.serverUrl,
+        username: AppConfig.username,
+        password: AppConfig.password,
+      ).then((r) => r.ok);
     } else if (await Session.canAutoLogin) {
       ok = await Api.autoLogin();
     }

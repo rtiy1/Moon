@@ -2,6 +2,7 @@ name: Android Release
 
 on:
   push:
+    branches: [main]
     tags:
       - 'v*'
   workflow_dispatch:
@@ -32,7 +33,11 @@ jobs:
         run: flutter analyze --no-fatal-warnings --no-fatal-infos
 
       - name: Build APK (split per ABI)
-        run: flutter build apk --release --split-per-abi
+        run: >
+          flutter build apk --release --split-per-abi
+          --dart-define=MOON_SERVER="${{ vars.MOON_SERVER }}"
+          --dart-define=MOON_USERNAME="${{ secrets.MOON_USERNAME }}"
+          --dart-define=MOON_PASSWORD="${{ secrets.MOON_PASSWORD }}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
