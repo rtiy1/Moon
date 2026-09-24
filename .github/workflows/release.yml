@@ -1,0 +1,48 @@
+name: Android Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-warnings --no-fatal-infos
+
+      - name: Build APK (split per ABI)
+        run: flutter build apk --release --split-per-abi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: moon-app-apk
+          path: build/app/outputs/flutter-apk/*.apk
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/app/outputs/flutter-apk/*.apk
+          generate_release_notes: true
