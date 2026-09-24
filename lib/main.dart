@@ -56,15 +56,17 @@ class _GateState extends State<_Gate> {
       ok = true;
       // 后台静默续期 Cookie
       Api.autoLogin();
-    } else if (AppConfig.hasBuiltinAccount) {
-      // 内置账号静默登录
+    } else if (await Session.canAutoLogin) {
+      // 用户自己登录过的账号优先
+      ok = await Api.autoLogin();
+    } else if (AppConfig.hasBuiltinAccount &&
+        !await Session.userOverrodeBuiltin) {
+      // 从未手动登录过 → 内置账号静默登录（免开屏）
       ok = await Api.login(
         serverUrl: AppConfig.serverUrl,
         username: AppConfig.username,
         password: AppConfig.password,
       ).then((r) => r.ok);
-    } else if (await Session.canAutoLogin) {
-      ok = await Api.autoLogin();
     }
     if (!mounted) return;
     setState(() {

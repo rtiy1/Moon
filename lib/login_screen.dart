@@ -84,6 +84,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
     setState(() => _logging = false);
     if (r.ok) {
+      // 手动登录成功 → 后续启动用这个账号，不再回落内置账号
+      await Session.markUserOverride();
+      if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const HomeScreen()),
         (_) => false,

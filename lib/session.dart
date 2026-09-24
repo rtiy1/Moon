@@ -7,6 +7,8 @@ class Session {
   static const _kPassword = 'password';
   static const _kCookie = 'auth_cookie';
   static const _kSiteName = 'site_name';
+  // 用户手动登录/登出过 → 不再用内置账号自动登录
+  static const _kUserOverride = 'user_override_builtin';
 
   static Future<void> save({
     required String serverUrl,
@@ -54,11 +56,23 @@ class Session {
     return u != null && u.isNotEmpty && p != null && p.isNotEmpty;
   }
 
-  /// 退出登录：保留服务器地址和用户名，清除密码与 Cookie
+  /// 用户是否手动操作过账号（登录/登出）——是则禁用内置账号自动登录
+  static Future<bool> get userOverrodeBuiltin async =>
+      (await SharedPreferences.getInstance()).getBool(_kUserOverride) ??
+      false;
+
+  static Future<void> markUserOverride() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_kUserOverride, true);
+  }
+
+  /// 退出登录：保留服务器地址和用户名，清除密码与 Cookie，
+  /// 并标记用户已手动操作（阻止内置账号再次自动登录）
   static Future<void> logout() async {
     final p = await SharedPreferences.getInstance();
     await p.remove(_kPassword);
     await p.remove(_kCookie);
+    await p.setBool(_kUserOverride, true);
   }
 
   static Future<void> clearAll() async {
